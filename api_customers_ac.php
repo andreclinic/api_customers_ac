@@ -44,6 +44,7 @@ function rest_customers_ac_activation_hook()
     // Por exemplo, criar tabelas no banco de dados, inicializar configurações, etc.
     $routes_path = APPPATH . 'config/routes.php';
     $content = file_get_contents($routes_path);
+    // Caminho para o helper
 
     $protection_line = "defined('BASEPATH') or exit('No direct script access allowed');";
     $new_route = "\$route['api/create_customer'] = 'Api_customers_ac/create';\n";
@@ -54,27 +55,49 @@ function rest_customers_ac_activation_hook()
         $content = str_replace($protection_line, $protection_line . "\n" . $new_route, $content);
         file_put_contents($routes_path, $content);
     }
+    // Obtenha a instância do CI
+    // Get the CI instance
+    $CI =& get_instance();
+
+    $CI->load->helper(API_CUSTOMERS_AC.'/api_customers_ac');
+    api_customers_ac_add_custom_fiels('CPF do Responsavel');
+    api_customers_ac_add_custom_fiels('Nome do Responsavel');
+    api_customers_ac_add_custom_fiels('Carteira de Identidade nº Responsável');
+    api_customers_ac_add_custom_fiels('Endereço, bairro, cidade, CEP, cidade, estado do Responsável');
+    api_customers_ac_add_custom_fiels('Cargo do Responsável');
+    api_customers_ac_add_custom_fiels('Usuários e Senhas');
+    api_customers_ac_add_custom_fiels('IP do Servidor');
+    api_customers_ac_add_custom_fiels('Segmentação da Empresa');
+    api_customers_ac_add_custom_fiels('Website');
+    api_customers_ac_add_custom_fiels('Horário');
+    api_customers_ac_add_custom_fiels('CPF/CNPJ');
+    api_customers_ac_add_custom_fiels('Numero do endereço');
+    api_customers_ac_add_custom_fiels('Email do cliente');
+    api_customers_ac_add_custom_fiels('Plano');
+    api_customers_ac_add_custom_fiels('Bairro');
+    // Defina nome do campo para armazenamento da chave
+    // Define field name for key storage
+    $key = 'api_customers_ac_key';
+
+    $CI->db->where('name', $key);
+    $query = $CI->db->get('tbloptions');
 
     $data = array(
         'name' => $key, // Chave exclusiva para a opção
-        'value' => $value, // Valor a ser armazenado
     );
 
     // Verifica se a chave já existe
-    // Check if the key already exists
-    $this->db->where('name', $key);
-    $query = $this->db->get('tbloptions');
+    $CI->db->where('name', $key);
+    $query = $CI->db->get('tbloptions');
 
     if ($query->num_rows() == 0) {
         // Se a chave não existe, insira o valor
-        // If the key does not exist, insert the value
-        $this->db->insert('tbloptions', $data);
+        $CI->db->insert('tbloptions', $data);
     } else {
         // Se a chave já existe, atualize o valor
-        // If the key already exists, update the value
-        if (!$key == '' || !$key == null) {
-            $this->db->where('name', $key);
-            $this->db->update('tbloptions', $data);
+        if ($key != '' && $key != null) {
+            $CI->db->where('name', $key);
+            $CI->db->update('tbloptions', $data); // Atualize o valor aqui
             return true;
         }
     }

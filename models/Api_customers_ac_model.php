@@ -89,23 +89,25 @@ class Api_customers_ac_model extends CI_Model
         return $this->db->insert_id();
     }
 
-        // Método para verificar se um módulo está ativo
-        public function is_module_active($module_name) {
-            // Consulte a tabela 'tblmodules' para verificar o status do módulo
-            $this->db->select('active'); // Seleciona a coluna 'active'
-            $this->db->from('tblmodules'); // Especifica a tabela
-            $this->db->where('module_name', $module_name); // Define a condição
+    // Método para verificar se um módulo está ativo
+    public function is_module_active($module_name)
+    {
+        // Consulte a tabela 'tblmodules' para verificar o status do módulo
+        $this->db->select('active'); // Seleciona a coluna 'active'
+        $this->db->from('tblmodules'); // Especifica a tabela
+        $this->db->where('module_name', $module_name); // Define a condição
 
-            $query = $this->db->get(); // Executa a consulta
-            $result = $query->row(); // Retorna uma linha ou null
+        $query = $this->db->get(); // Executa a consulta
+        $result = $query->row(); // Retorna uma linha ou null
 
-            // Verifica se o resultado é válido e se o módulo está ativo
-            return $result && $result->active == 1; // Retorna true se ativo, false se desativado
-        }
+        // Verifica se o resultado é válido e se o módulo está ativo
+        return $result && $result->active == 1; // Retorna true se ativo, false se desativado
+    }
 
     // Adiciona ou atualiza uma opção na tabela 'tbloptions'
     // Add or update an option in the 'tbloptions' table
-    public function set_option_key($key, $value = '') {
+    public function set_option_key($key, $value = '')
+    {
         // Dados para inserção ou atualização
         // Data for insertion or update
         $data = array(
@@ -125,7 +127,7 @@ class Api_customers_ac_model extends CI_Model
         } else {
             // Se a chave já existe, atualize o valor
             // If the key already exists, update the value
-            if(!$key == '' || !$key == null){
+            if (!$key == '' || !$key == null) {
                 $this->db->where('name', $key);
                 $this->db->update('tbloptions', $data);
                 return true;

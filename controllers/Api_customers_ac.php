@@ -2,7 +2,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 
-class Api_customers_ac extends CI_Controller//AdminController
+class Api_customers_ac extends CI_Controller
 {
 
     public function __construct()
@@ -25,7 +25,7 @@ class Api_customers_ac extends CI_Controller//AdminController
             exit;
         }
         // $this->load->view('api_customers_ac/api_clientes_tela');
-        echo 'Hello World';
+        echo '<h1>API para cadastro de clientes</h1>';
     }
 
     public function create()
