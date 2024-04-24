@@ -11,6 +11,7 @@ class Api_customers_ac extends CI_Controller//AdminController
         // Load the model
         // Carregar o modelo
         $this->load->model('Api_customers_ac_model');
+        $this->load->helper('api_customers_ac');
     }
 
     public function index()

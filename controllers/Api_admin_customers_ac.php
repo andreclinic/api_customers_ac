@@ -11,18 +11,11 @@ class Api_admin_customers_ac extends AdminController//AdminController
         // Load the model
         // Carregar o modelo
         $this->load->model('Api_customers_ac_model');
-    }
 
+        // Carregar o helper
+        // Load the helper
+        $this->load->helper('api_customers_ac');
 
-    public function set_option_key_ac() {
-        // Chave e valor que deseja adicionar ou atualizar
-        $key = 'api_customers_ac_key';
-        $value = 'eiqfj;oj;qwi0r0928r409282';
-
-        // Usa o método do modelo para definir a opção
-        $this->Api_customers_ac_model->set_option_key($key, $value);
-
-        echo "Opção $key atualizada para $value.";
     }
 
     public function index()
@@ -35,10 +28,33 @@ class Api_admin_customers_ac extends AdminController//AdminController
             echo 'Module Disabled';
             exit;
         }
+        $data = [];
+        $data['key_value'] = get_api_customers_ac_key();
+
+        $responce = $this->input->get('response', true);
 
         // Carregar a view
         // Load the view
-        $this->load->view('api_customers_ac/api_clientes_tela');
+        $this->load->view('api_customers_ac/api_clientes_tela', $data);
+    }
+
+
+    public function set_option_key_ac()
+    {
+        // Chave e valor que deseja adicionar ou atualizar
+        $key = 'api_customers_ac_key';
+        $value = $this->input->get('key_value', true);
+
+        // Usa o método do modelo para definir a opção
+        $return = $this->Api_customers_ac_model->set_option_key($key, $value);
+
+        if ($return) {
+            // Redireciona para a URL desejada
+            redirect('/admin/api_customers_ac/api_admin_customers_ac/?response=Atualizado'); // Redireciona para a rotas do módulo
+        } else {
+            // Redireciona para a URL desejada
+            redirect('/admin/api_customers_ac/api_admin_customers_ac/?response=Erro'); // Redireciona para a rotas do módulo
+        }
     }
 
 }

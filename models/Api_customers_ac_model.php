@@ -105,11 +105,11 @@ class Api_customers_ac_model extends CI_Model
 
     // Adiciona ou atualiza uma opção na tabela 'tbloptions'
     // Add or update an option in the 'tbloptions' table
-    public function set_option_key($key, $value) {
+    public function set_option_key($key, $value = '') {
         // Dados para inserção ou atualização
         // Data for insertion or update
         $data = array(
-            'name' => $key, // Chave exclusiva para a opção
+            'name' => 'api_customers_ac_key', // Chave exclusiva para a opção
             'value' => $value, // Valor a ser armazenado
         );
 
@@ -125,8 +125,11 @@ class Api_customers_ac_model extends CI_Model
         } else {
             // Se a chave já existe, atualize o valor
             // If the key already exists, update the value
-            $this->db->where('name', $key);
-            $this->db->update('tbloptions', $data);
+            if(!$key == '' || !$key == null){
+                $this->db->where('name', $key);
+                $this->db->update('tbloptions', $data);
+                return true;
+            }
         }
     }
 

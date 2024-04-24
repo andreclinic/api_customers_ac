@@ -54,6 +54,30 @@ function rest_customers_ac_activation_hook()
         $content = str_replace($protection_line, $protection_line . "\n" . $new_route, $content);
         file_put_contents($routes_path, $content);
     }
+
+    $data = array(
+        'name' => $key, // Chave exclusiva para a opção
+        'value' => $value, // Valor a ser armazenado
+    );
+
+    // Verifica se a chave já existe
+    // Check if the key already exists
+    $this->db->where('name', $key);
+    $query = $this->db->get('tbloptions');
+
+    if ($query->num_rows() == 0) {
+        // Se a chave não existe, insira o valor
+        // If the key does not exist, insert the value
+        $this->db->insert('tbloptions', $data);
+    } else {
+        // Se a chave já existe, atualize o valor
+        // If the key already exists, update the value
+        if (!$key == '' || !$key == null) {
+            $this->db->where('name', $key);
+            $this->db->update('tbloptions', $data);
+            return true;
+        }
+    }
 }
 
 
@@ -72,6 +96,7 @@ function rest_customers_ac_deactivation_hook()
     // Remove a rota do arquivo
     $content = str_replace("\$route['api/create_customer'] = 'Api_customers_ac/create';\n", '', $content);
     file_put_contents($routes_path, $content);
+
 }
 
 // Função para adicionar o menu do módulo
@@ -103,11 +128,11 @@ function api_customers_ac_menu()
         ]);
     }
 
-// Adiciona o hook para permissões do módulo
+    // Adiciona o hook para permissões do módulo
 // Add hook for module permissions
     hooks()->add_action('admin_init', 'api_customers_ac_permissions');
 
-// Função para adicionar permissões do módulo
+    // Função para adicionar permissões do módulo
 // Function to add module permissions
     function api_customers_ac_permissions($permissions)
     {
@@ -121,4 +146,5 @@ function api_customers_ac_menu()
         register_staff_capabilities('api_customers_ac', $capabilities, _l('API Customers AC'));
         return $permissions;
     }
+
 }
