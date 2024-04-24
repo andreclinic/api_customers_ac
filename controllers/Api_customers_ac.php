@@ -12,6 +12,8 @@ class Api_customers_ac extends CI_Controller
         // Carregar o modelo
         $this->load->model('Api_customers_ac_model');
         $this->load->helper('api_customers_ac');
+        // Carrega a biblioteca de validação de formulários
+        $this->load->library('form_validation');
     }
 
     public function index()
@@ -38,21 +40,49 @@ class Api_customers_ac extends CI_Controller
             echo 'Module Disabled';
             exit;
         }
+
+
+
         // Collect customer data
         // Coletar dados do cliente
-        $nameValue = 'André Teste';
-        $emailValue = 'andreclinic1@gmail.com';
-        $telephoneValue = '62981762590';
-        $addressValue = 'Rua CP10.';
-        $neighborhoodValue = 'Centro';
-        $cpfResponsibleValue = '123456';
-        $addressNumberIdValue = '100';
-        $cpfCnpjlValue = '86623176187';
-        $cityValue = 'Goiania';
-        $stateValue = 'Goias';
-        $countryValue = '32';
-        $zipCodeValue = '74000000';
-        $planValue = 'Mensal';
+        // $nameValue = 'André Teste';
+        // $emailValue = 'andreclinic1@gmail.com';
+        // $telephoneValue = '62981762590';
+        // $addressValue = 'Rua CP10.';
+        // $neighborhoodValue = 'Centro';
+        // $cpfResponsibleValue = '123456';
+        // $addressNumberIdValue = '100';
+        // $cpfCnpjlValue = '86623176187';
+        // $cityValue = 'Goiania';
+        // $stateValue = 'Goias';
+        // $countryValue = '32';
+        // $zipCodeValue = '74000000';
+        // $planValue = 'Mensal';
+
+
+        $nameValue = $this->input->post('name', TRUE);
+        $emailValue = $this->input->post('email', TRUE);
+        $telephoneValue = $this->input->post('telephone', TRUE);
+        $addressValue = $this->input->post('address', TRUE);
+        $neighborhoodValue = $this->input->post('neighborhood', TRUE);
+        $cpfResponsibleValue = $this->input->post('cpfResponsible', TRUE);
+        $addressNumberIdValue = $this->input->post('addressNumberIdValue', TRUE);
+        $cpfCnpjlValue = $this->input->post('cpfCnpjl', TRUE);
+        $cityValue = $this->input->post('city', TRUE);
+        $stateValue = $this->input->post('state', TRUE);
+        $countryValue = $this->input->post('country', TRUE);
+        $zipCodeValue = $this->input->post('zipCode', TRUE);
+        $planValue = $this->input->post('plan', TRUE);
+
+        // Obter o ID do campo personalizado 'Bairro'
+        // Get the ID of the 'Neighborhood' custom field
+        if($neighborhoodValue == "" || $neighborhoodValue == null){
+            echo json_encode(["message" => "Campo Bairro não encontrado"]);
+            exit;
+        }else{
+            $neighborhoodValue = $this->Api_customers_ac_model->get_custom_field_id('Bairro');
+        }
+
 
         // Prepare customer data for insertion
         // Preparar os dados do cliente para inserção
@@ -70,14 +100,6 @@ class Api_customers_ac extends CI_Controller
         // Criar o cliente
         // Create the customer
         $clientId = $this->Api_customers_ac_model->create_customer($data);
-
-        // Obter o ID do campo personalizado 'Bairro'
-        // Get the ID of the 'Neighborhood' custom field
-        $neighborhoodId = $this->Api_customers_ac_model->get_custom_field_id('Bairro');
-
-        // Adicionar o bairro ao cliente
-        // Add the neighborhood to the customer
-        $this->Api_customers_ac_model->add_custom_field($clientId, $neighborhoodId, $neighborhoodValue);
 
         // Obter o ID do campo personalizado 'CPF do Responsavel'
         // Get the ID of the 'CPF do Responsavel' custom field
@@ -130,9 +152,11 @@ class Api_customers_ac extends CI_Controller
         // Verificar se o cliente foi criado com sucesso
         // Check if the customer was created successfully
         if ($clientId) {
-            die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $clientId . "');</script>");
+            echo json_encode(["message" => "Cadastrado com sucesso"]);
+            // die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $clientId . "');</script>");
         } else {
-            die("<script>alert('Erro ao criar cliente.');</script>");
+            echo json_encode(["message" => "Ocorreu algun erro!"]);
+            // die("<script>alert('Erro ao criar cliente.');</script>");
         }
 
     }
