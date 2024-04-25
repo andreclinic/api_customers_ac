@@ -31,8 +31,6 @@ class Api_admin_customers_ac extends AdminController//AdminController
         $data = [];
         $data['key_value'] = get_api_customers_ac_key();
 
-        $responce = $this->input->get('response', true);
-
         // Carregar a view
         // Load the view
         $this->load->view('api_customers_ac/api_clientes_tela', $data);

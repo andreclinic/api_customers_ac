@@ -51,6 +51,9 @@ class Api_customers_ac extends CI_Controller
         // Validação dos dados
         // Data validation
         $errors = [];
+        if (!isset($data['keyValueApiSend']) || empty($data['keyValueApiSend'])) {
+            $errors['keyValueApiSend'] = 'Informar chave de segurença.';
+        }
 
         if (!isset($data['name']) || empty($data['name'])) {
             $errors['name'] = 'Nome é obrigatório.';
@@ -114,7 +117,15 @@ class Api_customers_ac extends CI_Controller
         $sanitized_data = sanitize_data_ac($data); // Sanitiza o array de dados
 
 
-        // Agora use os dados sanitizados para preencher variáveisß
+        // Agora use os dados sanitizados para preencher variáveis
+
+        $keyValueApi = get_api_customers_ac_key();
+
+        if($data['keyValueApiSend'] !== $keyValueApi){
+            echo json_encode(["message" => "Chave de segurança inválida!"]);
+            exit;
+        }
+
         $nameValue = $sanitized_data['name'];
         $emailValue = $sanitized_data['email'];
         $telephoneValue = $sanitized_data['telephone'];
