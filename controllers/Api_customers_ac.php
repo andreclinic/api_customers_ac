@@ -41,47 +41,108 @@ class Api_customers_ac extends CI_Controller
             exit;
         }
 
+        // Lê os dados brutos da entrada
+        $json = file_get_contents('php://input');
+
+        // Decodifica o JSON para um array
+        $data = json_decode($json, TRUE);
 
 
-        // Collect customer data
-        // Coletar dados do cliente
-        // $nameValue = 'André Teste';
-        // $emailValue = 'andreclinic1@gmail.com';
-        // $telephoneValue = '62981762590';
-        // $addressValue = 'Rua CP10.';
-        // $neighborhoodValue = 'Centro';
-        // $cpfResponsibleValue = '123456';
-        // $addressNumberIdValue = '100';
-        // $cpfCnpjlValue = '86623176187';
-        // $cityValue = 'Goiania';
-        // $stateValue = 'Goias';
-        // $countryValue = '32';
-        // $zipCodeValue = '74000000';
-        // $planValue = 'Mensal';
+        // Validação dos dados
+        // Data validation
+        $errors = [];
 
-
-        $nameValue = $this->input->post('name', TRUE);
-        $emailValue = $this->input->post('email', TRUE);
-        $telephoneValue = $this->input->post('telephone', TRUE);
-        $addressValue = $this->input->post('address', TRUE);
-        $neighborhoodValue = $this->input->post('neighborhood', TRUE);
-        $cpfResponsibleValue = $this->input->post('cpfResponsible', TRUE);
-        $addressNumberIdValue = $this->input->post('addressNumberIdValue', TRUE);
-        $cpfCnpjlValue = $this->input->post('cpfCnpjl', TRUE);
-        $cityValue = $this->input->post('city', TRUE);
-        $stateValue = $this->input->post('state', TRUE);
-        $countryValue = $this->input->post('country', TRUE);
-        $zipCodeValue = $this->input->post('zipCode', TRUE);
-        $planValue = $this->input->post('plan', TRUE);
-
-        // Obter o ID do campo personalizado 'Bairro'
-        // Get the ID of the 'Neighborhood' custom field
-        if($neighborhoodValue == "" || $neighborhoodValue == null){
-            echo json_encode(["message" => "Campo Bairro não encontrado"]);
-            exit;
-        }else{
-            $neighborhoodValue = $this->Api_customers_ac_model->get_custom_field_id('Bairro');
+        if (!isset($data['name']) || empty($data['name'])) {
+            $errors['name'] = 'Nome é obrigatório.';
         }
+
+        if (!isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Email é inválido.';
+        }
+
+        if (!isset($data['telephone']) || empty($data['telephone'])) {
+            $errors['telephone'] = 'Telefone deve ser um número.';
+        }
+
+        if (!isset($data['address']) || empty($data['address'])) {
+            $errors['address'] = 'Endereço é obrigatório.';
+        }
+
+        if (!isset($data['neighborhood']) || empty($data['neighborhood'])) {
+            $errors['neighborhood'] = 'Bairro é obrigatório.';
+        }
+
+        if (!isset($data['cpfResponsible']) || empty($data['cpfResponsible'])) {
+            $errors['cpfResponsible'] = 'CPF do responsável deve ser um número.';
+        }
+
+        if (!isset($data['addressNumberId']) || empty($data['addressNumberId'])) {
+            $errors['addressNumberId'] = 'Número do endereço deve ser um número.';
+        }
+
+        if (!isset($data['cpfCnpjl']) || empty($data['cpfCnpjl'])) {
+            $errors['cpfCnpjl'] = 'CPF/CNPJ deve ser um número.';
+        }
+
+        if (!isset($data['city']) || empty($data['city'])) {
+            $errors['city'] = 'Cidade é obrigatória.';
+        }
+
+        if (!isset($data['state']) || empty($data['state'])) {
+            $errors['state'] = 'Estado é obrigatório.';
+        }
+
+        if (!isset($data['country']) || empty($data['country'])) {
+            $errors['country'] = 'País é obrigatório.';
+        }
+
+        if (!isset($data['zipCode']) || empty($data['zipCode'])) {
+            $errors['zipCode'] = 'CEP deve ser um número.';
+        }
+
+        if (!isset($data['plan']) || empty($data['plan'])) {
+            $errors['plan'] = 'Plano é obrigatório.';
+        }
+
+        if (!empty($errors)) {
+            // Se houver erros, retorna um JSON com os erros
+            header('Content-Type: application/json');
+            echo json_encode(['errors' => $errors]);
+            exit;
+        }
+
+        $sanitized_data = sanitize_data_ac($data); // Sanitiza o array de dados
+
+
+        // Agora use os dados sanitizados para preencher variáveisß
+        $nameValue = $sanitized_data['name'];
+        $emailValue = $sanitized_data['email'];
+        $telephoneValue = $sanitized_data['telephone'];
+        $addressValue = $sanitized_data['address'];
+        $neighborhoodValue = $sanitized_data['neighborhood'];
+        $cpfResponsibleValue = $sanitized_data['cpfResponsible'];
+        $addressNumberIdValue = $sanitized_data['addressNumberId'];
+        $cpfCnpjlValue = clean_numeric($sanitized_data['cpfCnpjl']);
+
+        $check_cnpj_exists = $this->Api_customers_ac_model->check_cnpj_exists($cpfCnpjlValue);
+
+        if (!identify_and_validate_cpf_cnpj_ac($cpfCnpjlValue)) {
+            echo json_encode(["message" => "CNPJ ou cpf incorreto"]);
+            exit;
+        }
+
+        if ($check_cnpj_exists) {
+            echo json_encode(["message" => "CNPJ já existe"]);
+            exit;
+        }
+        $cityValue = $sanitized_data['city'];
+        $stateValue = $sanitized_data['state'];
+        $countryValue = $sanitized_data['country'];
+        $zipCodeValue = $sanitized_data['zipCode'];
+        $planValue = $sanitized_data['plan'];
+
+
+
 
 
         // Prepare customer data for insertion
@@ -100,6 +161,13 @@ class Api_customers_ac extends CI_Controller
         // Criar o cliente
         // Create the customer
         $clientId = $this->Api_customers_ac_model->create_customer($data);
+
+        // Obter o ID do campo personalizado 'Bairro'
+        // Get the ID of the 'Neighborhood' custom field
+        $neighborhoodId = $this->Api_customers_ac_model->get_custom_field_id('Bairro');
+        // Adicionar o Numero do endereço ao cliente
+        // Add the Customer address number
+        $this->Api_customers_ac_model->add_custom_field($clientId, $neighborhoodId, $neighborhoodValue);
 
         // Obter o ID do campo personalizado 'CPF do Responsavel'
         // Get the ID of the 'CPF do Responsavel' custom field

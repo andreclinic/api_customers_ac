@@ -36,12 +36,34 @@ class Api_customers_ac_model extends CI_Model
 
     // Função para verificar se o CNPJ já existe
     // Function to check if CNPJ already exists
-    public function check_cnpj_exists($cnpj)
-    {
-        $query = $this->db->get_where($this->tblclients, array('vat' => $cnpj));
-        $result = $query->row();
-        return count($result) > 0 ? $result = true : $result = false;
+    // public function check_cnpj_exists($cnpj)
+    // {
+    //     $query = $this->db->get_where($this->tblclients, array('vat' => $cnpj));
+    //     $result = $query->row();
+    //     return count($result) > 0 ? $result = true : $result = false;
+    // }
+
+    public function check_cnpj_exists($cnpj) {
+        // Remove todos os caracteres não numéricos do CNPJ de entrada
+        $cleaned_cnpj = preg_replace('/[^\d]/', '', $cnpj);
+    
+        // Obtém todos os CNPJs do banco de dados para limpeza e comparação
+        $query = $this->db->get($this->tblclients); // Busca todos os registros na tabela
+        $results = $query->result(); // Retorna todos os registros como um array de objetos
+    
+        // Limpa os CNPJs do banco de dados
+        foreach ($results as $result) {
+            $stored_cnpj = preg_replace('/[^\d]/', '', $result->vat); // Limpa o CNPJ armazenado
+            
+            if ($stored_cnpj === $cleaned_cnpj) {
+                return true; // Se os CNPJs limpos forem iguais, o CNPJ já existe
+            }
+        }
+    
+        // Se não houver correspondência, o CNPJ não existe no banco de dados
+        return false;
     }
+    
 
     // Função para retornar o ID do campo personalizado
     // Function to return the ID of the custom field
