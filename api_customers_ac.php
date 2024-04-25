@@ -117,7 +117,7 @@ function rest_customers_ac_deactivation_hook()
     $content = file_get_contents($routes_path);
 
     // Remove a rota do arquivo
-    $content = str_replace("\$route['api/create_customer'] = 'Api_customers_ac/create';\n", '', $content);
+    $content = str_replace("\$route['api/create_customer'] = 'api_customers_ac/Api_customers_ac/create';\n", '', $content);
     file_put_contents($routes_path, $content);
 
 }
