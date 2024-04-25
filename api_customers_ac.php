@@ -47,7 +47,7 @@ function rest_customers_ac_activation_hook()
     // Caminho para o helper
 
     $protection_line = "defined('BASEPATH') or exit('No direct script access allowed');";
-    $new_route = "\$route['api/create_customer'] = 'Api_customers_ac/create';\n";
+    $new_route = "\$route['api/create_customer'] = 'api_customers_ac/Api_customers_ac/create';\n";
 
     // Verifica se a rota já existe
     if (strpos($content, $new_route) === false) {
