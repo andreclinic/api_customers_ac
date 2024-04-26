@@ -75,9 +75,9 @@ class Api_customers_ac extends CI_Controller
             $errors['neighborhood'] = 'Bairro é obrigatório.';
         }
 
-        if (!isset($data['cpfResponsible']) || empty($data['cpfResponsible'])) {
-            $errors['cpfResponsible'] = 'CPF do responsável deve ser um número.';
-        }
+        // if (!isset($data['cpfResponsible']) || empty($data['cpfResponsible'])) {
+        //     $errors['cpfResponsible'] = 'CPF do responsável deve ser um número.';
+        // }
 
         if (!isset($data['addressNumberId']) || empty($data['addressNumberId'])) {
             $errors['addressNumberId'] = 'Número do endereço deve ser um número.';

@@ -55,4 +55,23 @@ class Api_admin_customers_ac extends AdminController//AdminController
         }
     }
 
+    public function cadastro()
+    {
+        // Verificar se o módulo está ativo
+        // Check if the module is active
+        $activeModule = $this->Api_customers_ac_model->is_module_active('Api_customers_ac');
+        if (!$activeModule) {
+            echo 'Módulo Desativado<br>';
+            echo 'Module Disabled';
+            exit;
+        }
+        $data = [];
+        $data['key_value'] = get_api_customers_ac_key();
+
+        // Carregar a view
+        // Load the view
+        $this->load->view('api_customers_ac/api_clientes_cadastro', $data);
+    }
+
+
 }
