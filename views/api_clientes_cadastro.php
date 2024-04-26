@@ -286,13 +286,13 @@ $url = $protocol . "://" . $host . $request_uri;
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Ajuda Online</a>
+                        <!-- <a class="nav-link" href="#">Ajuda Online</a> -->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Registrar-se</a>
+                        <!-- <a class="nav-link" href="#">Registrar-se</a> -->
                     </li>
                     <li class="nav-item active">
-                        <button class="btn btn-entrar">Entrar</button>
+                        <a href="https://erp.alsweb.com.br/authentication/login" target="_blank"><button class="btn btn-entrar">Tenho Contrato</button></a>
                     </li>
                 </ul>
             </div>
