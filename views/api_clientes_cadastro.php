@@ -38,8 +38,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Converte os dados para JSON
     $json_data = json_encode($data);
 
+    // Protocolo HTTP (http ou https)
+    $protocolBase = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+
+    // Nome do host
+    $hostBase = $_SERVER['HTTP_HOST'];
+
+    $ulrBase = $protocolBase . "://" . $hostBase;
+
     // URL da API
-    $api_url = "http://localhost/api/create_customer";
+    $api_url = $ulrBase . "/api/create_customer";
 
     // Inicializa a sessão cURL
     $curl = curl_init($api_url);
@@ -61,17 +69,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Decodifica a resposta da API
     $api_response = json_decode($response, true);
 
+
     // Verifica se a resposta possui uma mensagem
     if (isset($api_response['message'])) {
-        // echo "<script>alert('Mensagem da API: {$api_response['message']}');</script>";
+        if ($api_response['message'] == "Cadastrado com sucesso") {
+            // echo "<script>alert('Mensagem da API: {$api_response['message']}');</script>";
+            echo "<script>$('#notificationMessage').text('Resposta da API: {$api_response['message']}'); $('#notificationModal').modal('show');</script>";
+            // Recarrega a página após 5 segundos
+            echo "<meta http-equiv='refresh' content='5'>";
+        }
         echo "<script>$('#notificationMessage').text('Resposta da API: {$api_response['message']}'); $('#notificationModal').modal('show');</script>";
-        // Recarrega a página após 3 segundos
-        echo "<meta http-equiv='refresh' content='8'>";
     }
     // Fecha a sessão cURL
     curl_close($curl);
-    // echo $key_value;
-    // var_dump($api_response);
 }
 ?>
 
@@ -88,7 +98,7 @@ $request_uri = $_SERVER['REQUEST_URI'];
 // URL completa
 $url = $protocol . "://" . $host . $request_uri;
 
-// echo $url;
+
 ?>
 
 <!DOCTYPE html>
@@ -296,26 +306,27 @@ $url = $protocol . "://" . $host . $request_uri;
 
                 <div class="form-group">
                     <label for="cpfCnpjl">CPF/CNPJ</label>
-                    <input type="text" class="form-control" id="cpfCnpjl" name="cpfCnpjl" placeholder="Ex: 123.456.789-00 ou 12.345.678/0001-90"
+                    <input type="text" class="form-control" id="cpfCnpjl" name="cpfCnpjl"
+                        placeholder="Ex: 123.456.789-00 ou 12.345.678/0001-90"
                         value="<?php echo htmlspecialchars($cpfCnpjl); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="name">Nome</label>
-                    <input type="text" class="form-control" id="name" name="name" placeholder="Informe seu nome completo"
-                        value="<?php echo htmlspecialchars($name); ?>" required>
+                    <input type="text" class="form-control" id="name" name="name"
+                        placeholder="Informe seu nome completo" value="<?php echo htmlspecialchars($name); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" placeholder="Ex: email123@gmail.com"
-                        value="<?php echo htmlspecialchars($email); ?>" required>
+                    <input type="email" class="form-control" id="email" name="email"
+                        placeholder="Ex: email123@gmail.com" value="<?php echo htmlspecialchars($email); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="telephone">Telefone</label>
-                    <input type="text" class="form-control" id="telephone" name="telephone" placeholder="Ex: (11) 99999-9999"
-                        value="<?php echo htmlspecialchars($telephone); ?>" required>
+                    <input type="text" class="form-control" id="telephone" name="telephone"
+                        placeholder="Ex: (11) 99999-9999" value="<?php echo htmlspecialchars($telephone); ?>" required>
                 </div>
 
                 <div class="form-group">
@@ -327,18 +338,20 @@ $url = $protocol . "://" . $host . $request_uri;
                 <div class="form-group">
                     <label for="addressNumberId">Número</label>
                     <input type="text" class="form-control" id="addressNumberId" name="addressNumberId"
-                        placeholder="Número do Endereço Ex: 90" value="<?php echo htmlspecialchars($addressNumberId); ?>"
-                        required>
+                        placeholder="Número do Endereço Ex: 90"
+                        value="<?php echo htmlspecialchars($addressNumberId); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="address">Rua, avenida, logradouro</label>
-                    <input type="text" class="form-control" id="address" name="address" placeholder="Ex: Rua A, 123" value="<?php echo htmlspecialchars($address); ?>" required>
+                    <input type="text" class="form-control" id="address" name="address" placeholder="Ex: Rua A, 123"
+                        value="<?php echo htmlspecialchars($address); ?>" required>
                 </div>
 
                 <div class="form-group">
                     <label for="neighborhood">Bairro</label>
-                    <input type="text" class="form-control" id="neighborhood" name="neighborhood" placeholder="Ex: Centro" value="<?php echo htmlspecialchars($neighborhood); ?>" required>
+                    <input type="text" class="form-control" id="neighborhood" name="neighborhood"
+                        placeholder="Ex: Centro" value="<?php echo htmlspecialchars($neighborhood); ?>" required>
                 </div>
 
                 <!-- <div class="form-group">
