@@ -48,6 +48,7 @@ function rest_customers_ac_activation_hook()
 
     $protection_line = "defined('BASEPATH') or exit('No direct script access allowed');";
     $new_route = "\$route['api/create_customer'] = 'api_customers_ac/Api_customers_ac/create';\n";
+    $route_form_api = "\$route['api/form_customer_ac'] = 'api_customers_ac/Api_customers_cadastro_ac';\n";
 
     // Verifica se a rota já existe
     if (strpos($content, $new_route) === false) {
@@ -55,11 +56,17 @@ function rest_customers_ac_activation_hook()
         $content = str_replace($protection_line, $protection_line . "\n" . $new_route, $content);
         file_put_contents($routes_path, $content);
     }
+    // Verifica se a rota já existe
+    if (strpos($content, $route_form_api) === false) {
+        // Insere a nova rota após a linha de proteção
+        $content = str_replace($protection_line, $protection_line . "\n" . $route_form_api, $content);
+        file_put_contents($routes_path, $content);
+    }
     // Obtenha a instância do CI
     // Get the CI instance
     $CI =& get_instance();
 
-    $CI->load->helper(API_CUSTOMERS_AC.'/api_customers_ac');
+    $CI->load->helper(API_CUSTOMERS_AC . '/api_customers_ac');
     api_customers_ac_add_custom_fiels('CPF do Responsavel');
     api_customers_ac_add_custom_fiels('Nome do Responsavel');
     api_customers_ac_add_custom_fiels('Carteira de Identidade nº Responsável');
@@ -118,6 +125,9 @@ function rest_customers_ac_deactivation_hook()
 
     // Remove a rota do arquivo
     $content = str_replace("\$route['api/create_customer'] = 'api_customers_ac/Api_customers_ac/create';\n", '', $content);
+    file_put_contents($routes_path, $content);
+    // Remove a rota do arquivo
+    $content = str_replace("\$route['api/'api/form_customer_ac'] = 'api_customers_ac/Api_customers_cadastro_ac';\n", '', $content);
     file_put_contents($routes_path, $content);
 
 }
