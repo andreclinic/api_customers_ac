@@ -64,8 +64,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Executa a requisição cURL
     $response = curl_exec($curl);
 
-    // var_dump($response);
-
     // Decodifica a resposta da API
     $api_response = json_decode($response, true);
 
@@ -97,6 +95,8 @@ $request_uri = $_SERVER['REQUEST_URI'];
 
 // URL completa
 $url = $protocol . "://" . $host . $request_uri;
+$url2 = $protocol . "://" . $host ;
+echo $url2;
 
 
 ?>
@@ -292,7 +292,7 @@ $url = $protocol . "://" . $host . $request_uri;
                         <!-- <a class="nav-link" href="#">Registrar-se</a> -->
                     </li>
                     <li class="nav-item active">
-                        <a href="https://erp.alsweb.com.br/authentication/login" target="_blank"><button class="btn btn-entrar">Tenho Contrato</button></a>
+                        <a href="<?php echo $url2 ?>" target="_blank"><button class="btn btn-entrar">Tenho Contrato</button></a>
                     </li>
                 </ul>
             </div>
