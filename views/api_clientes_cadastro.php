@@ -96,7 +96,6 @@ $request_uri = $_SERVER['REQUEST_URI'];
 // URL completa
 $url = $protocol . "://" . $host . $request_uri;
 $url2 = $protocol . "://" . $host ;
-echo $url2;
 
 
 ?>
