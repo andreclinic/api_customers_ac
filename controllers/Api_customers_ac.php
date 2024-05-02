@@ -50,29 +50,36 @@ class Api_customers_ac extends CI_Controller
 
         // Validação dos dados
         // Data validation
-        $errors = [];
+        // $errors = [];
+        $field = '';
         if (!isset($data['keyValueApiSend']) || empty($data['keyValueApiSend'])) {
-            $errors['keyValueApiSend'] = 'Informar chave de segurença.';
+            $field = 'keyValueApiSend';
+            $errors = 'Informar chave de segurença!';
         }
 
         if (!isset($data['name']) || empty($data['name'])) {
-            $errors['name'] = 'Nome é obrigatório.';
+            $field = 'name';
+            $errors = 'Nome é obrigatório!';
         }
 
         if (!isset($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Email é inválido.';
+            $field = 'email';
+            $errors = 'Email é inválido!';
         }
 
         if (!isset($data['telephone']) || empty($data['telephone'])) {
-            $errors['telephone'] = 'Telefone deve ser um número.';
+            $field = 'telephone';
+            $errors = 'Telefone deve ser um número!';
         }
 
         if (!isset($data['address']) || empty($data['address'])) {
-            $errors['address'] = 'Endereço é obrigatório.';
+            $field = 'address';
+            $errors = 'Endereço é obrigatório!';
         }
 
         if (!isset($data['neighborhood']) || empty($data['neighborhood'])) {
-            $errors['neighborhood'] = 'Bairro é obrigatório.';
+            $field = 'neighborhood';
+            $errors = 'Bairro é obrigatório!';
         }
 
         // if (!isset($data['cpfResponsible']) || empty($data['cpfResponsible'])) {
@@ -80,37 +87,48 @@ class Api_customers_ac extends CI_Controller
         // }
 
         if (!isset($data['addressNumberId']) || empty($data['addressNumberId'])) {
-            $errors['addressNumberId'] = 'Número do endereço deve ser um número.';
+            $field = 'addressNumberId';
+            $errors = 'Número do endereço deve ser um número!';
         }
 
         if (!isset($data['cpfCnpjl']) || empty($data['cpfCnpjl'])) {
-            $errors['cpfCnpjl'] = 'CPF/CNPJ deve ser um número.';
+            $field = 'cpfCnpjl';
+            $errors = 'CPF/CNPJ deve ser um número!';
         }
 
         if (!isset($data['city']) || empty($data['city'])) {
+            $field = 'city';
             $errors['city'] = 'Cidade é obrigatória.';
         }
 
         if (!isset($data['state']) || empty($data['state'])) {
-            $errors['state'] = 'Estado é obrigatório.';
+            $field = 'state';
+            $errors = 'Estado é obrigatório!';
         }
 
         if (!isset($data['country']) || empty($data['country'])) {
-            $errors['country'] = 'País é obrigatório.';
+            $field = 'country';
+            $errors = 'País é obrigatório!';
         }
 
         if (!isset($data['zipCode']) || empty($data['zipCode'])) {
-            $errors['zipCode'] = 'CEP deve ser um número.';
+            $field = 'zipCode';
+            $errors = 'CEP deve ser um número!';
         }
 
         if (!isset($data['plan']) || empty($data['plan'])) {
-            $errors['plan'] = 'Plano é obrigatório.';
+            $field = 'plan';
+            $errors = 'Plano é obrigatório!';
         }
 
         if (!empty($errors)) {
-            // Se houver erros, retorna um JSON com os erros
+            // Se houver erros, retorna um JSON com os errosß
             header('Content-Type: application/json');
-            echo json_encode(['errors' => $errors]);
+            echo json_encode([
+                'status' => 'error',
+                'field' => $field, // Adiciona o campo com erro ao JSON
+                'message' => $errors
+            ]);
             exit;
         }
 
@@ -121,8 +139,11 @@ class Api_customers_ac extends CI_Controller
 
         $keyValueApi = get_api_customers_ac_key();
 
-        if($data['keyValueApiSend'] !== $keyValueApi){
-            echo json_encode(["message" => "Chave de segurança inválida!"]);
+        if ($data['keyValueApiSend'] !== $keyValueApi) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Chave de segurança inválida!"
+            ]);
             exit;
         }
 
@@ -138,12 +159,20 @@ class Api_customers_ac extends CI_Controller
         $check_cnpj_exists = $this->Api_customers_ac_model->check_cnpj_exists($cpfCnpjlValue);
 
         if (!identify_and_validate_cpf_cnpj_ac($cpfCnpjlValue)) {
-            echo json_encode(["message" => "CNPJ ou cpf incorreto"]);
+            echo json_encode([
+                'status' => 'error',
+                'field' => 'cpfCnpjl', // Adiciona o campo com erro ao JSON
+                'message' => "CNPJ ou CPF incorreto!"
+            ]);
             exit;
         }
 
         if ($check_cnpj_exists) {
-            echo json_encode(["message" => "CNPJ já existe"]);
+            echo json_encode([
+                'status' => 'error',
+                'field' => 'cpfCnpjl', // Adiciona o campo com erro ao JSON
+                'message' => "CNPJ já existe!"
+            ]);
             exit;
         }
         $cityValue = $sanitized_data['city'];
@@ -151,9 +180,6 @@ class Api_customers_ac extends CI_Controller
         $countryValue = $sanitized_data['country'];
         $zipCodeValue = $sanitized_data['zipCode'];
         $planValue = $sanitized_data['plan'];
-
-
-
 
 
         // Prepare customer data for insertion
@@ -231,10 +257,18 @@ class Api_customers_ac extends CI_Controller
         // Verificar se o cliente foi criado com sucesso
         // Check if the customer was created successfully
         if ($clientId) {
-            echo json_encode(["message" => "Cadastrado com sucesso"]);
+            echo json_encode([
+                'status' => "success",
+                'field' => '', // Adiciona o campo com sucesso ao JSON
+                'message' => "Cadastrado com sucesso!"
+            ]);
             // die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $clientId . "');</script>");
         } else {
-            echo json_encode(["message" => "Ocorreu algun erro!"]);
+            echo json_encode([
+                'status' => "error",
+                'field' => '', // Adiciona o campo com erro ao JSON
+                'message' => "Ocorreu algun erro!"
+            ]);
             // die("<script>alert('Erro ao criar cliente.');</script>");
         }
 
