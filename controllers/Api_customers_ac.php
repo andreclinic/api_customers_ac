@@ -257,12 +257,49 @@ class Api_customers_ac extends CI_Controller
         // Verificar se o cliente foi criado com sucesso
         // Check if the customer was created successfully
         if ($clientId) {
+
+
+            $addressValueComplete = $addressValue. " Numero: ". $addressNumberIdValue;
+
+            $date = '02/05/2024';
+            $date = convert_date_format($date);
+            $duodate = add_days_to_date($date, 5);
+            $recurring = 1;
+            $total = 100;
+            $adminnote = 'Cliente cadastrado via API';
+            $terms = 'Os termobs de Contrato';
+            // Dados da fatura recorrente
+            $invoice_data = [
+                'clientid' => $clientId,
+                'total' => $total,
+                'date' => $date, // Data atual
+                'duedate' => $duodate,
+                'recurring' => $recurring, // Ativar recorrência
+                'sale_agent' => '1',
+                'adminnote' => $adminnote,
+                'terms' => $terms,
+                'billing_street' => $addressValueComplete, //endereço
+                'billing_city' => $cityValue, // cidade
+                'billing_state' => $stateValue, //estado
+                'billing_zip' => $zipCodeValue, // CEP
+                'billing_country' => $countryValue, // País
+                'shipping_street' => $addressValueComplete, // endereço
+                'shipping_city' => $cityValue, // cidade
+                'shipping_state' => $stateValue, // estado
+                'shipping_zip' => $zipCodeValue, // CEP
+                'shipping_country' => $countryValue, // País
+                'allowed_payment_modes' => 'a:1:{i:0;s:6:"stripe";}' // 'a:1:{i:0;s:5:"asaas";}';
+
+            ];
+            add_invoice_ac($invoice_data);
+
+
             echo json_encode([
                 'status' => "success",
                 'field' => '', // Adiciona o campo com sucesso ao JSON
                 'message' => "Cadastrado com sucesso!"
             ]);
-            // die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $clientId . "');</script>");
+            // die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $ivoice . "');</script>");
         } else {
             echo json_encode([
                 'status' => "error",
@@ -271,6 +308,8 @@ class Api_customers_ac extends CI_Controller
             ]);
             // die("<script>alert('Erro ao criar cliente.');</script>");
         }
+
+        // $ivoice = criar_fatura_recorrente($clientId, 100, 'Teste criacao de fatura.', 1, '2023-09-05');
 
     }
 
