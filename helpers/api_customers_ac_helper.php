@@ -2,15 +2,17 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-
+require_once dirname(dirname(__DIR__)).'/api_customers_ac/vendor/autoload.php';
 
 function get_api_customers_ac_key()
 {
     // Obtenha a instância do CI
     $CI =& get_instance();
+    $prifix = db_prefix();
+    $tbloptions = $prifix . 'options';
 
     $CI->db->where('name', 'api_customers_ac_key');
-    $query = $CI->db->get('tbloptions');
+    $query = $CI->db->get($tbloptions);
     if ($query->num_rows() > 0) {
         $option = $query->row(); // Obtém o resultado
         return $option->value; // Retorna o valor associado à chave
@@ -25,9 +27,11 @@ function api_customers_ac_add_custom_fiels($name)
 {
     // Obtenha a instância do CI
     $CI =& get_instance();
+    $prifix = db_prefix();
+    $tblcustomfields = $prifix . 'customfields';
 
     $CI->db->where('name', $name);
-    $query = $CI->db->get('tblcustomfields');
+    $query = $CI->db->get($tblcustomfields);
 
     if ($query->num_rows() > 0) {
         // O nome já existe, retorna um erro ou faz alguma outra coisa
@@ -57,7 +61,7 @@ function api_customers_ac_add_custom_fiels($name)
         'default_value' => null
     );
     // Insere os dados na tabela 'tblcustomfields'
-    return $CI->db->insert('tblcustomfields', $data);
+    return $CI->db->insert($tblcustomfields, $data);
 }
 
 function sanitize_data_ac($data)
@@ -77,7 +81,14 @@ function sanitize_data_ac($data)
     $sanitized_data['state'] = htmlspecialchars($data['state'], ENT_QUOTES, 'UTF-8');
     $sanitized_data['country'] = filter_var($data['country'], FILTER_SANITIZE_NUMBER_INT);
     $sanitized_data['zipCode'] = filter_var($data['zipCode'], FILTER_SANITIZE_NUMBER_INT);
-    $sanitized_data['plan'] = htmlspecialchars($data['plan'], ENT_QUOTES, 'UTF-8');
+    $sanitized_data['plan'] = htmlspecialchars($data['recurring'], ENT_QUOTES, 'UTF-8');
+    $sanitized_data['recurring'] = filter_var($data['recurring'], FILTER_SANITIZE_NUMBER_INT);
+    $sanitized_data['adminnote'] = htmlspecialchars($data['adminnote'], ENT_QUOTES, 'UTF-8');
+    $terms_safe_html = strip_tags($data['terms'], '<br><b><br />');
+    $sanitized_data['terms'] = htmlspecialchars($terms_safe_html, ENT_QUOTES, 'UTF-8');
+    $sanitized_data['description'] = htmlspecialchars($data['description'], ENT_QUOTES, 'UTF-8');
+    $sanitized_data['long_description'] = htmlspecialchars($data['long_description'], ENT_QUOTES, 'UTF-8');
+    $sanitized_data['qty_items'] = filter_var($data['qty_items'], FILTER_SANITIZE_NUMBER_INT);
 
     return $sanitized_data;
 }
@@ -174,11 +185,14 @@ function add_invoice_ac($invoice_data)
 {
     // Obtenha a instância do CI
     $CI =& get_instance();
+    $prifix = db_prefix();
+    $tbloptions = $prifix . 'options';
+    $tblinvoices = $prifix . 'invoices';
 
     // Acesse o último número de fatura armazenado nas configurações
     $last_number = (int) $CI->db->select('value')
         ->where('name', 'next_invoice_number')
-        ->get('tbloptions')
+        ->get($tbloptions)
         ->row()
         ->value;
 
@@ -219,64 +233,46 @@ function add_invoice_ac($invoice_data)
     $invoice_data['subscription_id'] = 0;
 
     // Inserir a nova fatura no banco de dadosr
-    $CI->db->insert('tblinvoices', $invoice_data);
+    $CI->db->insert($tblinvoices, $invoice_data);
+
+    // Obtém o ID da fatura recém-inserida
+    $invoice_id = $CI->db->insert_id();
 
     $nuber_update = $CI->db->insert_id() + 2;
 
     // Atualiza o número na configuração
     $CI->db->where('name', 'next_invoice_number')
-        ->update('tbloptions', ['value' => $nuber_update]);
+        ->update($tbloptions, ['value' => $nuber_update]);
 
     // Retorna o ID da nova fatura inserida
-    return $CI->db->insert_id();
+    return $invoice_id;
 }
 
 
 
+function add_items_to_invoice($invoice_id, $items)
+{
+    $CI =& get_instance();
+    $prifix = db_prefix();
+    $tblitemable = $prifix . 'itemable';
 
+    foreach ($items as $item) {
+        $item_data = [
+            'rel_id' => $invoice_id,
+            'rel_type' => 'invoice',
+            'description' => $item['description'],
+            'long_description' => isset($item['long_description']) ? $item['long_description'] : null,  // Inclui descrição longa
+            'qty' => $item['qty'],
+            'rate' => $item['rate'],
+            'unit' => isset($item['unit']) ? $item['unit'] : null,
+            'item_order' => isset($item['order']) ? $item['order'] : null,
+            'wh_delivered_quantity' => isset($item['delivered_quantity']) ? $item['delivered_quantity'] : 0.00
+        ];
 
-
-// Função para criar uma fatura recorrente no contexto de um helper de módulo
-// function criar_fatura_recorrente($cliente_id, $valor, $descricao, $recorrencia, $data_vencimento)
-// {
-//     // Obtenha a instância do CI
-//     $CI =& get_instance();
-
-//     // Gerar um hash único para a fatura
-//     $invoice_hash = md5(uniqid(rand(), true));
-
-//     // Dados da fatura recorrente
-//     $dados_fatura = [
-//         'clientid' => $cliente_id,
-//         'total' => $valor,
-//         'prefix' => 'INV-',
-//         'number' => get_next_invoice_number(),
-//         'number_format' => '1',
-//         'hash' => $invoice_hash,
-//         // 'description' => $descricao,
-//         'date' => date('Y-m-d'), // Data atual
-//         'duedate' => $data_vencimento,
-//         // 'recurring_type' => $recorrencia['tipo'], // Ex.: 'monthly', 'yearly'
-//         // 'custom_recurring' => $recorrencia['intervalo'], // Intervalo em número de dias/meses/etc.
-//         'recurring' => $recorrencia, // Ativar recorrência
-//         'currency' => 3 // Número de ciclos
-//     ];
-
-//     // Inserir a fatura no banco de dados
-//     $CI->db->insert('tblinvoices', $dados_fatura);
-
-//     // Retornar o ID da fatura recém-criada
-//     return $CI->db->insert_id();
-// }
-
-
-
-
-
-
-
-
-
+        // Insere o item na tabela tblitemable
+        $CI->db->insert($tblitemable, $item_data);
+    }
+}
 
 
 
@@ -313,5 +309,57 @@ function add_days_to_date($date, $days)
 
     // Retorna a data modificada no formato YYYY-MM-DD
     return $dateObject->format('Y-m-d');
+}
+
+
+
+function sanitize_html_ac($dirty_html) {
+    $config = HTMLPurifier_Config::createDefault();
+    $config->set('Core.Encoding', 'UTF-8');  // Define a codificação de caracteres para UTF-8
+    $config->set('HTML.Doctype', 'HTML 4.01 Transitional');  // Define o doctype
+
+    // Configura as tags HTML que são permitidas
+    $config->set('HTML.Allowed', 'br,b,strong,i,em');
+
+    $purifier = new HTMLPurifier($config);
+
+    // Limpa o HTML
+    $clean_html = $purifier->purify($dirty_html);
+
+    return $clean_html;
+}
+
+function getInvoiceUrl($invoiceId) {
+    $CI =& get_instance();  // Obtenha a instância do CI se estiver usando CodeIgniter
+    $prifix = db_prefix();
+    $tblinvoices = $prifix . 'invoices';
+    $CI->load->database();  // Certifique-se de que o banco de dados está carregado
+
+    // Buscar o hash da fatura pelo ID
+    $CI->db->select('hash');
+    $CI->db->from($tblinvoices);
+    $CI->db->where('id', $invoiceId);
+    $query = $CI->db->get();
+
+    if ($query->num_rows() == 1) {
+        $hash = $query->row()->hash;
+        // Construir a URL
+        $baseUrl = getBaseUrlAc().'/invoice/'; // Modifique conforme necessário para o domínio principal
+        $invoiceUrl = $baseUrl . $invoiceId . '/' . $hash;
+        return $invoiceUrl;
+    } else {
+        return "Fatura não encontrada.";
+    }
+}
+
+function getBaseUrlAc() {
+    // Detectar o protocolo (HTTP ou HTTPS)
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+
+    // Nome do host
+    $host = $_SERVER['HTTP_HOST'];
+
+    // Construir e retornar a base da URL
+    return $protocol . '://' . $host;
 }
 

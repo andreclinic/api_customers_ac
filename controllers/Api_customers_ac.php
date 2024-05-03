@@ -46,11 +46,12 @@ class Api_customers_ac extends CI_Controller
 
         // Decodifica o JSON para um array
         $data = json_decode($json, TRUE);
-
+        // echo '<pre>';
+        // var_dump($data);
+        // echo '</pre>';
 
         // Validação dos dados
         // Data validation
-        // $errors = [];
         $field = '';
         if (!isset($data['keyValueApiSend']) || empty($data['keyValueApiSend'])) {
             $field = 'keyValueApiSend';
@@ -121,6 +122,58 @@ class Api_customers_ac extends CI_Controller
             $errors = 'Plano é obrigatório!';
         }
 
+        if (!isset($data['date']) || empty($data['date'])) {
+            $field = 'date';
+            $errors = 'Data da fatura é obrigatório!';
+        }
+
+
+        if (!isset($data['recurring']) || empty($data['recurring'])) {
+            if(!is_numeric($data['recurring']) || intval($data['recurring']) != $data['recurring']){
+                $field = 'recurring';
+                $errors = 'A recorrencia em meses é obrigatória e informada por numero!';
+            }
+        }
+
+
+        if (!isset($data['rate']) || empty($data['rate'])) {
+            if(!is_numeric($data['rate']) || !preg_match('/^\d+(\.\d{1,2})?$/', $data['rate'])){
+                $field = 'rate';
+                $errors = 'O valor é obrigatório e deve ser informado em decimal!';
+            }
+
+        }
+
+        if (!isset($data['adminnote']) || empty($data['adminnote'])) {
+            $field = 'adminnote';
+            $errors = 'O valor de Anotações do admin é obrigatório!';
+        }
+
+        if (!isset($data['terms']) || empty($data['terms'])) {
+            $field = 'terms';
+            $errors = 'O termo da fatura é obrigatório!';
+        }
+
+        if (!isset($data['allowed_payment_modes']) || empty($data['allowed_payment_modes'])) {
+            $field = 'allowed_payment_modes';
+            $errors = 'O allowed_payment_modes da fatura é obrigatório! Veja na documentação.';
+        }
+
+        if (!isset($data['description']) || empty($data['description'])) {
+            $field = 'description';
+            $errors = 'A descrição curta para o item da fatura é obrigatória!';
+        }
+
+        if (!isset($data['long_description']) || empty($data['long_description'])) {
+            $field = 'long_description';
+            $errors = 'A descrição Longa para o item da fatura é obrigatória!';
+        }
+
+        if (!isset($data['qty_items']) || empty($data['qty_items'])) {
+            $field = 'qty_items';
+            $errors = 'A quantidatde de item da fatura é obrigatória!';
+        }
+
         if (!empty($errors)) {
             // Se houver erros, retorna um JSON com os errosß
             header('Content-Type: application/json');
@@ -180,6 +233,14 @@ class Api_customers_ac extends CI_Controller
         $countryValue = $sanitized_data['country'];
         $zipCodeValue = $sanitized_data['zipCode'];
         $planValue = $sanitized_data['plan'];
+        $dateValue = convert_date_format($data['date']);
+        $recurringValue = $sanitized_data['recurring'];
+        $rateValue = $data['rate'];
+        $adminnoteValue = $sanitized_data['adminnote'];
+        $termsValue = sanitize_html_ac($data['terms']);
+        $descriptionValue = $sanitized_data['description'];
+        $long_descriptionValue = $sanitized_data['long_description'];
+        $qty_itemsValue = $sanitized_data['qty_items'];
 
 
         // Prepare customer data for insertion
@@ -259,25 +320,20 @@ class Api_customers_ac extends CI_Controller
         if ($clientId) {
 
 
-            $addressValueComplete = $addressValue. " Numero: ". $addressNumberIdValue;
+            $addressValueComplete = $addressValue . " Numero: " . $addressNumberIdValue;
 
-            $date = '02/05/2024';
-            $date = convert_date_format($date);
-            $duodate = add_days_to_date($date, 5);
-            $recurring = 1;
-            $total = 100;
-            $adminnote = 'Cliente cadastrado via API';
-            $terms = 'Os termobs de Contrato';
+            $duodate = add_days_to_date($dateValue, 5);
+
             // Dados da fatura recorrente
             $invoice_data = [
                 'clientid' => $clientId,
-                'total' => $total,
-                'date' => $date, // Data atual
+                'total' => $rateValue,
+                'date' => $dateValue, // Data atual
                 'duedate' => $duodate,
-                'recurring' => $recurring, // Ativar recorrência
+                'recurring' => $recurringValue, // Ativar recorrência
                 'sale_agent' => '1',
-                'adminnote' => $adminnote,
-                'terms' => $terms,
+                'adminnote' => $adminnoteValue,
+                'terms' => $termsValue,
                 'billing_street' => $addressValueComplete, //endereço
                 'billing_city' => $cityValue, // cidade
                 'billing_state' => $stateValue, //estado
@@ -288,16 +344,34 @@ class Api_customers_ac extends CI_Controller
                 'shipping_state' => $stateValue, // estado
                 'shipping_zip' => $zipCodeValue, // CEP
                 'shipping_country' => $countryValue, // País
-                'allowed_payment_modes' => 'a:1:{i:0;s:6:"stripe";}' // 'a:1:{i:0;s:5:"asaas";}';
+                'allowed_payment_modes' => 'a:1:{i:0;s:5:"asaas";}' // 'a:1:{i:0;s:6:"stripe";}' // 'a:1:{i:0;s:5:"asaas";}';
 
             ];
-            add_invoice_ac($invoice_data);
+            $invoice_id = add_invoice_ac($invoice_data);
+
+            $items = [
+                [
+                    'description' => $descriptionValue,
+                    'long_description' => $long_descriptionValue,
+                    'qty' => $qty_itemsValue,
+                    'rate' => $rateValue,
+                    'unit' => 'pcs'
+                ]
+            ];
+
+
+            // Chamar a função para adicionar itens à fatura
+            add_items_to_invoice($invoice_id, $items);
+
+            $url_payment = getInvoiceUrl($invoice_id);
+
 
 
             echo json_encode([
                 'status' => "success",
                 'field' => '', // Adiciona o campo com sucesso ao JSON
-                'message' => "Cadastrado com sucesso!"
+                'message' => "Cadastrado com sucesso! Agarde que vai ser redirecionado para a página de pagamento.",
+                'url_payment' => $url_payment,
             ]);
             // die("<script>alert('Cliente criado com sucesso. ID do cliente: " . $ivoice . "');</script>");
         } else {
@@ -308,8 +382,6 @@ class Api_customers_ac extends CI_Controller
             ]);
             // die("<script>alert('Erro ao criar cliente.');</script>");
         }
-
-        // $ivoice = criar_fatura_recorrente($clientId, 100, 'Teste criacao de fatura.', 1, '2023-09-05');
 
     }
 

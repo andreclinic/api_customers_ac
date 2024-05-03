@@ -13,6 +13,10 @@ class Api_customers_ac_model extends CI_Model
     // tblcustomfieldsvalues Table Variable
     private $tblcustomfieldsvalues;
 
+    // Varialvel da Tabela tbloptions
+    // tbloptions Table Variable
+    private $tbloptions;
+
     // Construtor
     public function __construct()
     {
@@ -25,6 +29,10 @@ class Api_customers_ac_model extends CI_Model
         // Carrega o a tabela tblcustomfieldsvalues
         // Load the tblcustomfieldsvalues table
         $this->tblcustomfieldsvalues = db_prefix() . 'customfieldsvalues';
+
+        // Carrega o a tabela tblcustomfieldsvalues
+        // Load the tblcustomfieldsvalues table
+        $this->tbloptions = db_prefix() . 'tbloptions';
     }
 
     // Função para retornar todos os clientes
@@ -138,18 +146,18 @@ class Api_customers_ac_model extends CI_Model
         // Verifica se a chave já existe
         // Check if the key already exists
         $this->db->where('name', $key);
-        $query = $this->db->get('tbloptions');
+        $query = $this->db->get($this->tbloptions);
 
         if ($query->num_rows() == 0) {
             // Se a chave não existe, insira o valor
             // If the key does not exist, insert the value
-            $this->db->insert('tbloptions', $data);
+            $this->db->insert($this->tbloptions, $data);
         } else {
             // Se a chave já existe, atualize o valor
             // If the key already exists, update the value
             if (!$key == '' || !$key == null) {
                 $this->db->where('name', $key);
-                $this->db->update('tbloptions', $data);
+                $this->db->update($this->tbloptions, $data);
                 return true;
             }
         }
