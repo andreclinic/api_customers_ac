@@ -358,8 +358,8 @@ $url2 = $protocol . "://" . $host;
                 </div>
 
                 <div class="form-group">
-                    <label for="addressNumberId">Número</label>
-                    <input type="text" class="form-control" id="addressNumberId" name="addressNumberId"
+                    <label for="addressNumberId">Número (Caso não tenha numero no endereço, informe 0)</label>
+                    <input type="number" class="form-control" id="addressNumberId" name="addressNumberId"
                         placeholder="Número do Endereço Ex: 90"
                         value="<?php echo htmlspecialchars($addressNumberId); ?>" required>
                 </div>
