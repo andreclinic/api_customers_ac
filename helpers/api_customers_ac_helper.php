@@ -238,7 +238,7 @@ function add_invoice_ac($invoice_data)
     // Obtém o ID da fatura recém-inserida
     $invoice_id = $CI->db->insert_id();
 
-    $nuber_update = $CI->db->insert_id() + 2;
+    $nuber_update = $next_number + 1;
 
     // Atualiza o número na configuração
     $CI->db->where('name', 'next_invoice_number')
